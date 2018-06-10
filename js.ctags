@@ -1,0 +1,220 @@
+# 
+# js.ctags - universal ctags multitable regex parser for javascript
+#
+# Author: Santiago Herrera Cardona <santiagohecar@gmail.com>
+#
+# MIT License
+# 
+# Copyright (c) 2018 Santiago Herrera Cardona
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#                          parser main settings
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+#--_force-quit=0
+--fields=+ln
+--sort=no
+--langdef=js
+--map-js=.x
+--_tabledef-js=code
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#                                 kinds
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+--kinddef-js=v,variable,variables
+--kinddef-js=p,property,properties
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#                               any state
+# description: state to skip all non interesting stuff 
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+--_tabledef-js=any
+--_mtable-regex-js=any/.//
+
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#                             comment state
+# description: state to skip correctly comments. Supports
+#
+# var a = 1, /* block comment,
+#               multiline
+#             */
+#     b = "hello world",
+#     c = 1;
+# // one line comment too, var no_a_real_var = "";  
+#    
+# tags a, b, c
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+--_tabledef-js=comment 
+--_tabledef-js=comment_line 
+--_tabledef-js=comment_block
+
+--_mtable-regex-js=comment/\/\///{tenter=comment_line}
+--_mtable-regex-js=comment/\/\*//{tenter=comment_block}
+
+--_mtable-regex-js=comment_block/\*\///{tleave}
+--_mtable-extend-js=comment_block+any
+
+--_mtable-regex-js=comment_line/[\n\r\f]+//{tleave}
+--_mtable-extend-js=comment_line+any
+
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#                                 string state
+# description: state to skip correctly strings. Supports
+#
+# var a = "some text in double quote string \"support escape quotes\"",
+#     b = 'some text in single quote string \'support escape quotes\'',
+#     c = 1;
+#    
+# tags a, b, c
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+--_tabledef-js=string 
+--_tabledef-js=string_interpreted 
+--_tabledef-js=string_literal
+
+--_mtable-regex-js=string/"//{tenter=string_interpreted}
+--_mtable-regex-js=string/'//{tenter=string_literal}
+
+--_mtable-regex-js=string_interpreted/\\"//
+--_mtable-regex-js=string_interpreted/"//{tleave}
+--_mtable-extend-js=string_interpreted+any
+
+--_mtable-regex-js=string_literal/\\'//
+--_mtable-regex-js=string_literal/'//{tleave}
+--_mtable-extend-js=string_literal+any
+
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#                                 parens state
+# description: state to detect declarations inside parentheses
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+--_tabledef-js=parens
+--_mtable-regex-js=parens/\)//{tleave}
+--_mtable-regex-js=parens/\(//{tenter=parens}
+--_mtable-extend-js=parens+comment
+--_mtable-extend-js=parens+string
+--_mtable-extend-js=parens+any
+
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#                                 object state
+# description: state to detect properties declarations. Supports
+#
+# {
+#   a: 1,
+#   b: {c:2, d: "", /**/ e: 3}
+# }
+#
+# tags a, b, c, d, e
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+--_tabledef-js=object 
+--_tabledef-js=in_object 
+--_tabledef-js=property_def
+--_tabledef-js=in_property_def
+--_tabledef-js=property_assign
+
+# object
+--_mtable-regex-js=object/\{//{tenter=in_object}
+
+# property_def
+--_mtable-regex-js=property_def/([a-zA-Z_$][a-zA-Z0-9_$]*)/\1/p/{tenter=in_property_def}
+
+# in_object
+--_mtable-regex-js=in_object/\}//{tleave}
+--_mtable-extend-js=in_object+property_def
+--_mtable-extend-js=in_object+comment
+--_mtable-extend-js=in_object+any
+
+# in_property_def
+--_mtable-regex-js=in_property_def/[,]//{tleave}
+--_mtable-regex-js=in_property_def/[}]//{tleave}{_advanceTo=0start}
+--_mtable-regex-js=in_property_def/://{tenter=property_assign}
+--_mtable-extend-js=in_property_def+comment
+--_mtable-extend-js=in_property_def+any
+
+# property_assign
+--_mtable-regex-js=property_assign/[,}]//{tleave}{_advanceTo=0start}
+--_mtable-extend-js=property_assign+comment
+--_mtable-extend-js=property_assign+string
+--_mtable-extend-js=property_assign+object
+#--_mtable-regex-js=property_assign/\(//{tenter=parens}
+--_mtable-extend-js=property_assign+any
+
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#                                vars_def state
+# description: state to detect variables declarations. Supports
+#
+# var a /* this is valid */ = "1", b = {c: {d: // single comment
+# }}, e; 
+#
+# tags a, b, c, d, e
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+--_tabledef-js=vars_def 
+--_tabledef-js=in_vars_def
+--_tabledef-js=var_def 
+--_tabledef-js=in_var_def 
+--_tabledef-js=var_assign
+
+# vars_def
+--_mtable-regex-js=vars_def/var[ \n\t]([a-zA-Z_$])//{tenter=in_vars_def}{_advanceTo=1start}
+
+# var_def
+--_mtable-regex-js=var_def/([a-zA-Z_$][a-zA-Z0-9_$]*)/\1/v/{tenter=in_var_def}
+
+# in_vars_def
+--_mtable-regex-js=in_vars_def/;//{tleave}
+--_mtable-extend-js=in_vars_def+var_def
+--_mtable-extend-js=in_vars_def+comment
+--_mtable-extend-js=in_vars_def+any
+
+# in_var_def
+--_mtable-regex-js=in_var_def/[,]//{tleave}
+--_mtable-regex-js=in_var_def/[;]//{tleave}{_advanceTo=0start}
+--_mtable-regex-js=in_var_def/=//{tenter=var_assign}
+--_mtable-extend-js=in_var_def+comment
+--_mtable-extend-js=in_var_def+any
+
+# var_assign
+--_mtable-regex-js=var_assign/[,;]//{tleave}{_advanceTo=0start}
+--_mtable-extend-js=var_assign+comment
+--_mtable-extend-js=var_assign+string
+--_mtable-extend-js=var_assign+object
+#--_mtable-regex-js=var_assign/\(//{tenter=parens}
+--_mtable-extend-js=var_assign+any
+
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#                               code state
+# description: top lever parser state
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+--_mtable-extend-js=code+comment
+--_mtable-extend-js=code+vars_def
+--_mtable-extend-js=code+any
+
