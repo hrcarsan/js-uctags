@@ -33,8 +33,10 @@
 --fields=+ln
 --sort=no
 --langdef=js
---map-js=.x
+--map-js=.js
 --_tabledef-js=code
+--languages=js
+
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #                                 kinds
@@ -42,6 +44,8 @@
 
 --kinddef-js=v,variable,variables
 --kinddef-js=p,property,properties
+--kinddef-js=f,function,functions
+
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #                               any state
@@ -75,7 +79,7 @@
 --_mtable-regex-js=comment_block/\*\///{tleave}
 --_mtable-extend-js=comment_block+any
 
---_mtable-regex-js=comment_line/[\n\r\f]+//{tleave}
+--_mtable-regex-js=comment_line/[\n\r\f]//{tleave}
 --_mtable-extend-js=comment_line+any
 
 
@@ -108,15 +112,25 @@
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #                                 parens state
-# description: state to detect declarations inside parentheses
+# description: state to detect code inside parentheses
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+--_tabledef-js=function_def 
+--_tabledef-js=in_function_def 
+
+--_mtable-regex-js=function_def/function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\([^)]*\)\s*\{/\1/f/{tenter=in_function_def}
+--_mtable-regex-js=function_def/function\s*\([^)]*\)\s*\{//{tenter=in_function_def}
+
 --_tabledef-js=parens
---_mtable-regex-js=parens/\)//{tleave}
---_mtable-regex-js=parens/\(//{tenter=parens}
---_mtable-extend-js=parens+comment
---_mtable-extend-js=parens+string
---_mtable-extend-js=parens+any
+--_tabledef-js=in_parens
+
+--_mtable-regex-js=parens/\(//{tenter=in_parens}
+
+--_mtable-regex-js=in_parens/\)//{tleave}
+--_mtable-extend-js=in_parens+parens
+--_mtable-extend-js=in_parens+comment
+--_mtable-extend-js=in_parens+function_def
+--_mtable-extend-js=in_parens+any
 
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -161,7 +175,7 @@
 --_mtable-extend-js=property_assign+comment
 --_mtable-extend-js=property_assign+string
 --_mtable-extend-js=property_assign+object
-#--_mtable-regex-js=property_assign/\(//{tenter=parens}
+--_mtable-extend-js=property_assign+parens
 --_mtable-extend-js=property_assign+any
 
 
@@ -182,7 +196,7 @@
 --_tabledef-js=var_assign
 
 # vars_def
---_mtable-regex-js=vars_def/var[ \n\t]([a-zA-Z_$])//{tenter=in_vars_def}{_advanceTo=1start}
+--_mtable-regex-js=vars_def/var[ \n\t]*([a-zA-Z_$])//{tenter=in_vars_def}{_advanceTo=1start}
 
 # var_def
 --_mtable-regex-js=var_def/([a-zA-Z_$][a-zA-Z0-9_$]*)/\1/v/{tenter=in_var_def}
@@ -205,9 +219,21 @@
 --_mtable-extend-js=var_assign+comment
 --_mtable-extend-js=var_assign+string
 --_mtable-extend-js=var_assign+object
-#--_mtable-regex-js=var_assign/\(//{tenter=parens}
+--_mtable-extend-js=var_assign+parens
 --_mtable-extend-js=var_assign+any
 
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#                             function_def state
+# description: state to detect functions declarations. Supports
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+--_mtable-regex-js=in_function_def/}//{tleave}
+--_mtable-extend-js=in_function_def+comment
+--_mtable-extend-js=in_function_def+vars_def
+--_mtable-extend-js=in_function_def+parens
+--_mtable-extend-js=in_function_def+any
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #                               code state
@@ -216,5 +242,7 @@
 
 --_mtable-extend-js=code+comment
 --_mtable-extend-js=code+vars_def
+--_mtable-extend-js=code+function_def
+--_mtable-extend-js=code+parens
 --_mtable-extend-js=code+any
 
