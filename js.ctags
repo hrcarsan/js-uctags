@@ -35,6 +35,7 @@
 --langdef=js
 --map-js=.js
 --_tabledef-js=code
+--languages=-javascript
 --languages=js
 
 
@@ -82,7 +83,6 @@
 --_mtable-regex-js=comment_line/[\n\r\f]//{tleave}
 --_mtable-extend-js=comment_line+any
 
-
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #                                 string state
 # description: state to skip correctly strings. Supports
@@ -117,9 +117,12 @@
 
 --_tabledef-js=function_def 
 --_tabledef-js=in_function_def 
+--_tabledef-js=method_def 
 
 --_mtable-regex-js=function_def/function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\([^)]*\)\s*\{/\1/f/{tenter=in_function_def}
 --_mtable-regex-js=function_def/function\s*\([^)]*\)\s*\{//{tenter=in_function_def}
+
+--_mtable-regex-js=method_def/\.([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*function\s*\([^)]*\)\s*\{/\1/m/{tenter=in_function_def}
 
 --_tabledef-js=parens
 --_tabledef-js=in_parens
@@ -130,6 +133,7 @@
 --_mtable-extend-js=in_parens+parens
 --_mtable-extend-js=in_parens+comment
 --_mtable-extend-js=in_parens+function_def
+--_mtable-extend-js=in_parens+method_def
 --_mtable-extend-js=in_parens+any
 
 
@@ -176,8 +180,8 @@
 --_mtable-extend-js=property_assign+string
 --_mtable-extend-js=property_assign+object
 --_mtable-extend-js=property_assign+parens
+--_mtable-extend-js=property_assign+function_def
 --_mtable-extend-js=property_assign+any
-
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #                                vars_def state
@@ -220,6 +224,7 @@
 --_mtable-extend-js=var_assign+string
 --_mtable-extend-js=var_assign+object
 --_mtable-extend-js=var_assign+parens
+--_mtable-extend-js=var_assign+function_def
 --_mtable-extend-js=var_assign+any
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -228,10 +233,10 @@
 #
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
---_mtable-regex-js=in_function_def/}//{tleave}
+--_mtable-regex-js=in_function_def/\}//{tleave}
 --_mtable-extend-js=in_function_def+comment
 --_mtable-extend-js=in_function_def+vars_def
+--_mtable-extend-js=in_function_def+function_def
 --_mtable-extend-js=in_function_def+parens
 --_mtable-extend-js=in_function_def+any
 
@@ -243,6 +248,7 @@
 --_mtable-extend-js=code+comment
 --_mtable-extend-js=code+vars_def
 --_mtable-extend-js=code+function_def
+--_mtable-extend-js=code+method_def
 --_mtable-extend-js=code+parens
 --_mtable-extend-js=code+any
 
