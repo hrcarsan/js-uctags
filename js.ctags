@@ -200,7 +200,8 @@
 --_tabledef-js=var_assign
 
 # vars_def
---_mtable-regex-js=vars_def/var[ \n\t]*([a-zA-Z_$])//{tenter=in_vars_def}{_advanceTo=1start}
+--_mtable-regex-js=vars_def/var\s+//{tenter=in_vars_def}
+#--_mtable-regex-js=vars_def/var[ \n\t]*([a-zA-Z_$])//{tenter=in_vars_def}{_advanceTo=1start}
 
 # var_def
 --_mtable-regex-js=var_def/([a-zA-Z_$][a-zA-Z0-9_$]*)/\1/v/{tenter=in_var_def}
@@ -230,7 +231,6 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #                             function_def state
 # description: state to detect functions declarations. Supports
-#
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 --_mtable-regex-js=in_function_def/\}//{tleave}
